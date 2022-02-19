@@ -14,6 +14,10 @@ from sklearn.ensemble import RandomForestClassifier
 import pandas
 # from sklearn.esemble import confusion_matrix
 from sklearn.metrics import confusion_matrix
+#from keras.utils import to_categorial
+#from keras.models import Sequential
+#from keras.layers import Conv2D, MaxPool2D, Dense, Flatten, Dropout
+
 
 import xml.etree.ElementTree as ET
 
@@ -23,50 +27,6 @@ import xml.etree.ElementTree as ET
 # 1 - warning
 # 2 - mandatory
 # -1 - not used
-# class_id_to_new_class_id = {0: 0,
-#                             1: 0,
-#                             2: 0,
-#                             3: 0,
-#                             4: 0,
-#                             5: 0,
-#                             6: -1,
-#                             7: 0,
-#                             8: 0,
-#                             9: 0,
-#                             10: 0,
-#                             11: 1,
-#                             12: -1,
-#                             13: 1,
-#                             14: 0,
-#                             15: 0,
-#                             16: 0,
-#                             17: 0,
-#                             18: 1,
-#                             19: 1,
-#                             20: 1,
-#                             21: 1,
-#                             22: 1,
-#                             23: 1,
-#                             24: 1,
-#                             25: 1,
-#                             26: 1,
-#                             27: 1,
-#                             28: 1,
-#                             29: 1,
-#                             30: 1,
-#                             31: 1,
-#                             32: -1,
-#                             33: 2,
-#                             34: 2,
-#                             35: 2,
-#                             36: 2,
-#                             37: 2,
-#                             38: 2,
-#                             39: 2,
-#                             40: 2,
-#                             41: -1,
-#                             42: -1}
-#
 
 def load_data(path, filename):
     """
@@ -103,23 +63,119 @@ def load_mine():
     return object
 
 
+######### Whole path import
+
+#filedirectory="train/annotations/"
+#directory=os.fsencode(filedirectory)
+
+#road="road0"
+
+#for file in os.listdir(directory):
+#    filename=os.fsdecode(road)
+#    if filename.endswith(".xml"):
+#        continue
+
 #load_mine()
 
-patha = r'C:\Users\hpiet\PycharmProjects\WhereIsTheCrosswalk\train\annotations\road0.xml'
-pathi= r'C:\Users\hpiet\PycharmProjects\WhereIsTheCrosswalk\train\images\road0.png'
+#path = r'C:\Users\hpiet\PycharmProjects\WhereIsTheCrosswalk\train\annotations\road0.xml'
+#pathi= r'C:\Users\hpiet\PycharmProjects\WhereIsTheCrosswalk\train\images\road0.png'
     # implementacja ET
 
-tree=ET.parse(r'train\annotations\road0.xml')
-root=tree.getroot()
+            ##ELEMENT TREE
 
-for filename in root.findall('object'):
-    name=filename.find('name').text
-    print(name)
 
-#root.findall("*/filename")
+# tree=ET.parse(r'train\annotations\road0.xml')
+# root=tree.getroot()
+
+# for filename in root.findall('object'):
+#     name=filename.find('name').text
+#     print(name)
+
+# dlugosc=877
+# nazwa='road'
+# for i in range(dlugosc):
+#     i=str.=nazwa+'i'
+#     print(nazwa)
+print('******')
+print(os.getcwd())
+l = list(os.listdir())
+print(l)
+path = r'./train/annotations'
+
+
+######## counter and path to folder
+
+path = r'./train/annotations'
+
+
+def get_tree_size(path):
+    """Return total size of files in given path and subdirs."""
+    total = 0
+    cnt = 0
+###empty lists
+    traffic_lights = []
+    crosswalk = []
+    stop = []
+    speedlimit = []
+
+    for entry in os.scandir(path):
+        tree = ET.parse(entry)
+        root = tree.getroot()
+        #name=root.findall('object')
+        for filename in root.findall('object'):
+            name=filename.find('name').text
+            print(name)
+            if name=='trafficlight':
+                traffic_lights.append(name)
+            elif name=='stop':
+                stop.append(name)
+            elif name == 'speedlimit':
+                speedlimit.append(name)
+            elif name=='crosswalk':
+                crosswalk.append(name)
+            cnt+=1
+        #print(name)
+        #         cnt += 1
+        if entry.is_dir(follow_symlinks=False):
+            total += get_tree_size(entry.path)
+        else:
+            total += entry.stat(follow_symlinks=False).st_size
+    #print(total)
+    #print(cnt)
+    print('traffic_light',len(traffic_lights))
+    print('stop',len(stop))
+    print('speedlimit',len(speedlimit))
+    print('crosswalk',len(crosswalk))
+    return total
+
+
+
+# tree = ET.parse(r'train\annotations\road0.xml')
+# root = tree.getroot()
+#with os.scandir(os.path.join(path)) as it:
+  #  print(os.getcwd())
+#     for element in path:
+#         tree = ET.parse(element)
+#         root = tree.getroot()
+#         name=root.findall('object')
+#         print(name)
+#         cnt += 1
+#     print(cnt)
+
+
+get_tree_size(path)
+
+
+
+
+
+
+# root.findall("*/filename")
 # x=root.tag
 # y=root.attrib
 # print(x,y)
+
+
 # for child in root:
 #     print(child.tag,child.attrib)
 
@@ -129,49 +185,3 @@ for filename in root.findall('object'):
     # Displaying the image
    # cv2.imshow('image', img)
 
-# def main():
-#     data_train = load_data('./', 'Train.csv')
-#     print('train dataset before balancing:')
-#     display_dataset_stats(data_train)
-#     data_train = balance_dataset(data_train, 1.0)
-#     print('train dataset after balancing:')
-#     display_dataset_stats(data_train)
-#
-#     data_test = load_data('./', 'Test.csv')
-#     print('test dataset before balancing:')
-#     display_dataset_stats(data_test)
-#     data_test = balance_dataset(data_test, 1.0)
-#     print('test dataset after balancing:')
-#     display_dataset_stats(data_test)
-#
-#     # you can comment those lines after dictionary is learned and saved to disk.
-#  #   print('learning BoVW')
-#  #   learn_bovw(data_train)
-#
-#     print('extracting train features')
-#     data_train = extract_features(data_train)
-#
-#     print('training')
-#     rf = train(data_train)
-#
-#     print('extracting test features')
-#     data_test = extract_features(data_test)
-#
-#     print('testing on testing dataset')
-#     data_test = predict(rf, data_test)
-#     evaluate(data_test)
-#     display(data_test)
-#
-#     print('testing on trening dataset')
-#     data_train = predict(rf, data_train)
-#     evaluate(data_test)
-#     display(data_train)
-#
-#     return#
-#
-#
-# # Press the green button in the gutter to run the script.
-# if __name__ == '__main__':
-#     print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
