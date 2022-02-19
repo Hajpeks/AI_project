@@ -1,10 +1,8 @@
-# This is a sample Python script.
+"""Aditional definitions/import"""
+#from keras.utils import to_categorial
+#from keras.models import Sequential
+#from keras.layers import Conv2D, MaxPool2D, Dense, Flatten, Dropout
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-# !/usr/bin/env python
-
-"""code template"""
 
 import os
 import random
@@ -14,19 +12,99 @@ from sklearn.ensemble import RandomForestClassifier
 import pandas
 # from sklearn.esemble import confusion_matrix
 from sklearn.metrics import confusion_matrix
-#from keras.utils import to_categorial
-#from keras.models import Sequential
-#from keras.layers import Conv2D, MaxPool2D, Dense, Flatten, Dropout
+import xml.etree.ElementTree as  ET
+
+#IMAGE THINGS :p
+from matplotlib import image
+import pandas as pd
+from sklearn.datasets import images
+
+from  matplotlib import pyplot as plt
+import matplotlib.image as mpimg
 
 
-import xml.etree.ElementTree as ET
+
+# print(os.getcwd())
+
+path = r'../train/annotations'
+path_to_image = r'../train'
 
 
-# translation of 43 classes to 3 classes:
-# 0 - prohibitory
-# 1 - warning
-# 2 - mandatory
-# -1 - not used
+
+## translation of 4 classes to 2 classes:
+##4 classes are types of road signs to 2 claasses:
+#
+#
+# 1 - crosswalk
+# 0 - not used #should be failure (other)
+
+
+class_name = {'speedlimit': 0,
+              'crosswalk': 1,
+              'trafficlight': 0,
+              'stop': 0}
+
+def extract_data(path):
+    """Extracting needed data from .xml file"""
+            #LIGHT THOUGHTS
+    #print(os.getcwd())
+    #l = list(os.listdir())
+    #print(l)
+
+    """NEW LISTS AND COUNTER+TOTAL CHECK"""
+    total = 0
+    cnt = 0
+    counterofxmls=0
+    ###empty lists
+    traffic_lights = []
+    crosswalk = []
+    stop = []
+    speedlimit = []
+
+    allxml=[]
+
+    for entry in os.scandir(path):
+        tree = ET.parse(entry)
+        root = tree.getroot()
+        # name=root.findall('object')
+        for filename in root.findall('object'):
+            name = filename.find('name').text
+            #print(name)
+            if name == 'trafficlight':
+                traffic_lights.append(name)
+            elif name == 'stop':
+                stop.append(name)
+            elif name == 'speedlimit':
+                speedlimit.append(name)
+            elif name == 'crosswalk':
+                crosswalk.append(name)
+            cnt += 1
+        # print(name)
+        #         cnt += 1
+        if entry.is_dir(follow_symlinks=False):
+            total += extract_data(entry.path)
+        else:
+            total += entry.stat(follow_symlinks=False).st_size
+
+        for nameroad in root.findall('annotations'):
+            filnm=nameroad.find('filename').text
+            allxml.append(filnm)
+            counterofxmls+=1
+            #print(filnm)
+    # print(total)
+    # print(cnt)
+    #print(counterofxmls)
+    #print(allxml)
+
+    #####PRINTS OF ALL TYPES (HMM CLASSES)
+
+    print('traffic_light', len(traffic_lights))
+    print('stop', len(stop))
+    print('speedlimit', len(speedlimit))
+    print('crosswalk', len(crosswalk))
+    print('filename', len(allxml))
+
+    return total
 
 def load_data(path, filename):
     """
@@ -49,139 +127,57 @@ def load_data(path, filename):
    #
    #  return data
 
-def load_mine():
-    traffic_lights=[]
-    crosswalk=[]
-    stop=[]
-    speedlimit=[]
-    patha = r'C:\Users\hpiet\PycharmProjects\WhereIsTheCrosswalk\train\annotations\road0.xml'
-    pathi= r'C:\Users\hpiet\PycharmProjects\WhereIsTheCrosswalk\train\images\road0.png'
-    # implementacja ET
-
-    root=ET.fromstring(patha)
-    root.findall(object)
-    return object
-
-
 ######### Whole path import
 
-#filedirectory="train/annotations/"
-#directory=os.fsencode(filedirectory)
-
-#road="road0"
-
-#for file in os.listdir(directory):
-#    filename=os.fsdecode(road)
-#    if filename.endswith(".xml"):
-#        continue
-
-#load_mine()
-
-#path = r'C:\Users\hpiet\PycharmProjects\WhereIsTheCrosswalk\train\annotations\road0.xml'
-#pathi= r'C:\Users\hpiet\PycharmProjects\WhereIsTheCrosswalk\train\images\road0.png'
-    # implementacja ET
-
-            ##ELEMENT TREE
-
-
-# tree=ET.parse(r'train\annotations\road0.xml')
-# root=tree.getroot()
-
-# for filename in root.findall('object'):
-#     name=filename.find('name').text
-#     print(name)
-
-# dlugosc=877
-# nazwa='road'
-# for i in range(dlugosc):
-#     i=str.=nazwa+'i'
-#     print(nazwa)
-print('******')
-print(os.getcwd())
-l = list(os.listdir())
-print(l)
-path = r'./train/annotations'
-
-
-######## counter and path to folder
-
-path = r'./train/annotations'
-
-
-def get_tree_size(path):
-    """Return total size of files in given path and subdirs."""
-    total = 0
-    cnt = 0
-###empty lists
-    traffic_lights = []
-    crosswalk = []
-    stop = []
-    speedlimit = []
-
-    for entry in os.scandir(path):
-        tree = ET.parse(entry)
-        root = tree.getroot()
-        #name=root.findall('object')
-        for filename in root.findall('object'):
-            name=filename.find('name').text
-            print(name)
-            if name=='trafficlight':
-                traffic_lights.append(name)
-            elif name=='stop':
-                stop.append(name)
-            elif name == 'speedlimit':
-                speedlimit.append(name)
-            elif name=='crosswalk':
-                crosswalk.append(name)
-            cnt+=1
-        #print(name)
-        #         cnt += 1
-        if entry.is_dir(follow_symlinks=False):
-            total += get_tree_size(entry.path)
-        else:
-            total += entry.stat(follow_symlinks=False).st_size
-    #print(total)
-    #print(cnt)
-    print('traffic_light',len(traffic_lights))
-    print('stop',len(stop))
-    print('speedlimit',len(speedlimit))
-    print('crosswalk',len(crosswalk))
-    return total
-
-
-
-# tree = ET.parse(r'train\annotations\road0.xml')
-# root = tree.getroot()
-#with os.scandir(os.path.join(path)) as it:
-  #  print(os.getcwd())
-#     for element in path:
-#         tree = ET.parse(element)
-#         root = tree.getroot()
-#         name=root.findall('object')
-#         print(name)
-#         cnt += 1
-#     print(cnt)
-
-
-get_tree_size(path)
 
 
 
 
 
+# plt.figure(figsize=(30, 30))
+# for i in range(1):
+#     file = random.choice(os.listdir(path_to_image))
+#     image_path = os.path.join(path_to_image, file)
+#     img = mpimg.imread(image_path)
+#     ax = plt.subplot(1, 5, i + 1)
+#     ax.title.set_text(file)
+#    # plt.imshow(img)
+#    # plt.show()
 
-# root.findall("*/filename")
-# x=root.tag
-# y=root.attrib
-# print(x,y)
 
 
-# for child in root:
-#     print(child.tag,child.attrib)
+def create_dataset(path_to_image):
+    img_data_array=[]
+    class_name=[]
+    IMG_HEIGHT = 100
+    IMG_WIDTH = 100
+    counter=0
+    for dir1 in os.listdir(path_to_image):
+        for file in os.listdir(os.path.join(path_to_image, dir1)):
 
-    # Using cv2.imread() method
-  #  img = cv2.imread(path)
+            image_path= os.path.join(path_to_image, dir1,  file)
+            image= cv2.imread( image_path, cv2.COLOR_BGR2RGB) #cv2.color... to RGB
+            if (type(image) == type(None)):
+                pass
+                print('failuer')
+            else:
+                image=cv2.resize(image, (IMG_HEIGHT, IMG_WIDTH),interpolation = cv2.INTER_AREA)
+                image=np.array(image)
+                image = image.astype('float32')
+                image /= 255
+                img_data_array.append(image)
+                class_name.append(dir1)
+                counter+=1
+                #print(img_data_array)
+                # print(class_name)
+        print(counter)
+    return img_data_array, class_name
 
-    # Displaying the image
-   # cv2.imshow('image', img)
+
+
+extract_data(path)
+create_dataset(path_to_image)
+
+
+
 
