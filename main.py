@@ -26,8 +26,12 @@ import matplotlib.image as mpimg
 
 # print(os.getcwd())
 
-path = r'../train/annotations'
-path_to_image = r'../train'
+path_ANN = r'../train/annotations'
+path_IMG=r'../train/images'
+
+path_to_test=r'../test'
+path_to_train = r'../train'
+
 
 
 
@@ -106,43 +110,34 @@ def extract_data(path):
 
     return total
 
-def load_data(path, filename):
-    """
-    Loads data from disk.
-    @param path: Path to dataset directory.
-    @param filename: Filename of csv file with information about samples.
-    @return: List of dictionaries, one for every sample, with entries "image" (np.array with image) and "label" (class_id).
-    """
-   # entry_list = pandas.read_csv(os.path.join(path, filename))
-   #
-   #  data = []
-   #  for idx, entry in entry_list.iterrows():  # co to iterowrs xd
-   #      class_id = class_id_to_new_class_id[entry['ClassId']]   #simplified class
-   #      image_path = entry['Path']  #image path
-   #
-   #      if class_id != -1: #if not -1 class(as we can describe it)
-   #          image = cv2.imread(os.path.join(path, image_path)) #load image from specified file
-   #          #if failed returns empty matrix
-   #          data.append({'image': image, 'label': class_id})
-   #
-   #  return data
 
-######### Whole path import
+##tu trzeba to dodac
+list_xmls=[]
+lists_png=[]
+
+def load_data(path):
+   path_xml=os.path.abspath(os.path.join(path,'annotations/*.xml'))
+   print('dlugosc xml',len(path_xml))
+   path_png=os.path.abspath(os.path.join(path,'images/*.png'))
+   print('dlugosc png', (len(path_png)))
+
+   list_xmls.sort()
+   lists_png.sort()
+
+   data=[] #jeden kontener na dane
+
+   if(len(list_xmls)==len(lists_png)):
+       print(len(list_xmls))
+       print(len(lists_png))
+       for element in range(len(list_xmls)):
+           data.append({'annotation':list_xmls[element],'image':cv2.imread(lists_png[element]),'crosswalk':None})
+   else:
+       print('Data set is wrong')
+
+   #print(data)  ## narazie 0
+   return data
 
 
-
-
-
-
-# plt.figure(figsize=(30, 30))
-# for i in range(1):
-#     file = random.choice(os.listdir(path_to_image))
-#     image_path = os.path.join(path_to_image, file)
-#     img = mpimg.imread(image_path)
-#     ax = plt.subplot(1, 5, i + 1)
-#     ax.title.set_text(file)
-#    # plt.imshow(img)
-#    # plt.show()
 
 
 
@@ -174,10 +169,9 @@ def create_dataset(path_to_image):
     return img_data_array, class_name
 
 
-
-extract_data(path)
-create_dataset(path_to_image)
-
+extract_data(path_ANN)
+#create_dataset(path_IMG)
 
 
+data_train=load_data(path_to_train)
 
