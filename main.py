@@ -13,6 +13,7 @@ import pandas
 # from sklearn.esemble import confusion_matrix
 from sklearn.metrics import confusion_matrix
 import xml.etree.ElementTree as  ET
+import glob
 
 #IMAGE THINGS :p
 from matplotlib import image
@@ -112,25 +113,30 @@ def extract_data(path):
 
 
 ##tu trzeba to dodac
-list_xmls=[]
-lists_png=[]
+#list_xmls=[]
+#lists_png=[]
 
 def load_data(path):
+
    path_xml=os.path.abspath(os.path.join(path,'annotations/*.xml'))
    print('dlugosc xml',len(path_xml))
+
    path_png=os.path.abspath(os.path.join(path,'images/*.png'))
    print('dlugosc png', (len(path_png)))
 
+   list_xmls = glob.glob(path_xml)
+   list_png = glob.glob(path_png)
+
    list_xmls.sort()
-   lists_png.sort()
+   list_png.sort()
 
    data=[] #jeden kontener na dane
 
-   if(len(list_xmls)==len(lists_png)):
-       print(len(list_xmls))
-       print(len(lists_png))
+   if(len(list_xmls)==len(list_png)):
+       #print(len(list_xmls))
+       #print(len(list_png))
        for element in range(len(list_xmls)):
-           data.append({'annotation':list_xmls[element],'image':cv2.imread(lists_png[element]),'crosswalk':None})
+           data.append({'annotation':list_xmls[element],'image':cv2.imread(list_png[element]),'crosswalk':None})
    else:
        print('Data set is wrong')
 
