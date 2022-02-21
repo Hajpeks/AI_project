@@ -166,34 +166,38 @@ def load_data(path):
    #print(data)  ## narazie 0
    return data
 
+def get_file_list(root, file_type):
+    return [os.path.join(directory_path, a) for directory_path, directory_name,
+            files in os.walk(root) for a in files if a.endswith(file_type)]
 
 
-def create_dataset(path_to_image):
-    img_data_array=[]
-    class_name=[]
-    IMG_HEIGHT = 100
-    IMG_WIDTH = 100
-    counter=0
-    for dir1 in os.listdir(path_to_image):
-        for file in os.listdir(os.path.join(path_to_image, dir1)):
+def extract_data(path_annotations, path_images):
+    """Extracting needed data from .xml file and fitting to image"""
+    annotations_path_list = get_file_list(path_annotations, '.xml')
+    annotations_list = []
+    for a_path in annotations_path_list:
+        root = ET.parse(a_path).getroot()
+        annotations = {}
+        annotations['filename'] = Path(str(path_images) + '/' + root.find("./filename").text)
+        annotations['width'] = root.find("./size/width").text
+        annotations['height'] = root.find("./size/height").text
+        annotations['class'] = root.find("./object/name").text
+        annotations['xmin'] = int(root.find("./object/bndbox/xmin").text)
+        annotations['ymin'] = int(root.find("./object/bndbox/ymin").text)
+        annotations['xmax'] = int(root.find("./object/bndbox/xmax").text)
+        annotations['ymax'] = int(root.find("./object/bndbox/ymax").text)
+        annotations_list.append(annotations)
+    return pd.DataFrame(annotations_list)
 
-            image_path= os.path.join(path_to_image, dir1,  file)
-            image= cv2.imread( image_path, cv2.COLOR_BGR2RGB) #cv2.color... to RGB
-            if (type(image) == type(None)):
-                pass
-                print('failuer')
-            else:
-                image=cv2.resize(image, (IMG_HEIGHT, IMG_WIDTH),interpolation = cv2.INTER_AREA)
-                image=np.array(image)
-                image = image.astype('float32')
-                image /= 255
-                img_data_array.append(image)
-                class_name.append(dir1)
-                counter+=1
-                #print(img_data_array)
-                # print(class_name)
-        print(counter)
-    return img_data_array, class_name
+def read_image(path):
+    image = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
+
+data_train = data_train.reset_index()
+
+X = data_train[['filename']]
+y = data_train['class']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=34)
 
 
 extract_data(path_ANN)
