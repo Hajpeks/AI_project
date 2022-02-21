@@ -34,7 +34,12 @@ path_to_test=r'../test'
 path_to_train = r'../train'
 
 
+counter_rand=0
 
+traffic_lights = []
+crosswalk = []
+stop = []
+speedlimit = []
 
 ## translation of 4 classes to 2 classes:
 ##4 classes are types of road signs to 2 claasses:
@@ -43,11 +48,29 @@ path_to_train = r'../train'
 # 1 - crosswalk
 # 0 - not used #should be failure (other)
 
+def xd():
+    train=[]
+    test=[]
+    counter=0
 
-class_name = {'speedlimit': 0,
-              'crosswalk': 1,
-              'trafficlight': 0,
-              'stop': 0}
+    while len(crosswalk) != 0:
+        index = random.randrange(0, len(crosswalk))
+        if counter != 0:
+            train.append(crosswalk[index])
+        else:
+            test.append(crosswalk[index])
+        crosswalk.pop(index)
+        counter = (counter + 1) % 4
+    other=traffic_lights+speedlimit+stop
+    while len(other) != 0:
+        index = random.randrange(0, len(other))
+        if counter != 0:
+            train.append(other[index])
+        else:
+            test.append(other[index])
+        other.pop(index)
+        counter = (counter + 1) % 4
+    return train,test
 
 def extract_data(path):
     """Extracting needed data from .xml file"""
@@ -61,10 +84,10 @@ def extract_data(path):
     cnt = 0
     counterofxmls=0
     ###empty lists
-    traffic_lights = []
-    crosswalk = []
-    stop = []
-    speedlimit = []
+    # traffic_lights = []
+    # crosswalk = []
+    # stop = []
+    # speedlimit = []
 
     allxml=[]
 
@@ -76,13 +99,13 @@ def extract_data(path):
             name = filename.find('name').text
             #print(name)
             if name == 'trafficlight':
-                traffic_lights.append(name)
+                traffic_lights.append(entry)
             elif name == 'stop':
-                stop.append(name)
+                stop.append(entry)
             elif name == 'speedlimit':
-                speedlimit.append(name)
+                speedlimit.append(entry)
             elif name == 'crosswalk':
-                crosswalk.append(name)
+                crosswalk.append(entry)
             cnt += 1
         # print(name)
         #         cnt += 1
@@ -133,8 +156,8 @@ def load_data(path):
    data=[] #jeden kontener na dane
 
    if(len(list_xmls)==len(list_png)):
-       #print(len(list_xmls))
-       #print(len(list_png))
+       print(len(list_xmls))
+       print(len(list_png))
        for element in range(len(list_xmls)):
            data.append({'annotation':list_xmls[element],'image':cv2.imread(list_png[element]),'crosswalk':None})
    else:
@@ -142,8 +165,6 @@ def load_data(path):
 
    #print(data)  ## narazie 0
    return data
-
-
 
 
 
@@ -177,7 +198,5 @@ def create_dataset(path_to_image):
 
 extract_data(path_ANN)
 #create_dataset(path_IMG)
-
-
 data_train=load_data(path_to_train)
-
+xd()
