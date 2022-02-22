@@ -3,7 +3,6 @@
 #from keras.models import Sequential
 #from keras.layers import Conv2D, MaxPool2D, Dense, Flatten, Dropout
 
-
 import os
 import random
 import numpy as np
@@ -14,11 +13,14 @@ import pandas
 from sklearn.metrics import confusion_matrix
 import xml.etree.ElementTree as  ET
 import glob
+from pathlib import Path
 
+import shutil
 #IMAGE THINGS :p
 from matplotlib import image
 import pandas as pd
 from sklearn.datasets import images
+from sklearn.model_selection import train_test_split
 
 from  matplotlib import pyplot as plt
 import matplotlib.image as mpimg
@@ -27,8 +29,14 @@ import matplotlib.image as mpimg
 
 # print(os.getcwd())
 
-path_ANN = r'../train/annotations'
-path_IMG=r'../train/images'
+path_ANN = r'../archiwum/annotations'
+path_IMG=r'../archiwum/images'
+
+path_temp_test=r'../test/annotations'
+path_temp_train= r'../train/annotations'
+
+path_temp_test_i=r'../test/images'
+path_temp_train_i= r'../train/images'
 
 path_to_test=r'../test'
 path_to_train = r'../train'
@@ -36,43 +44,17 @@ path_to_train = r'../train'
 
 counter_rand=0
 
-traffic_lights = []
+#4 classes
 crosswalk = []
-stop = []
-speedlimit = []
+other=[]
 
-## translation of 4 classes to 2 classes:
-##4 classes are types of road signs to 2 claasses:
-#
-#
-# 1 - crosswalk
-# 0 - not used #should be failure (other)
+#train and test
+train = []
+test = []
 
-def xd():
-    train=[]
-    test=[]
-    counter=0
 
-    while len(crosswalk) != 0:
-        index = random.randrange(0, len(crosswalk))
-        if counter != 0:
-            train.append(crosswalk[index])
-        else:
-            test.append(crosswalk[index])
-        crosswalk.pop(index)
-        counter = (counter + 1) % 4
-    other=traffic_lights+speedlimit+stop
-    while len(other) != 0:
-        index = random.randrange(0, len(other))
-        if counter != 0:
-            train.append(other[index])
-        else:
-            test.append(other[index])
-        other.pop(index)
-        counter = (counter + 1) % 4
-    return train,test
 
-def extract_data(path):
+def old_extract_data(path):
     """Extracting needed data from .xml file"""
             #LIGHT THOUGHTS
     #print(os.getcwd())
@@ -134,18 +116,13 @@ def extract_data(path):
 
     return total
 
-
-##tu trzeba to dodac
-#list_xmls=[]
-#lists_png=[]
-
 def load_data(path):
 
    path_xml=os.path.abspath(os.path.join(path,'annotations/*.xml'))
-   print('dlugosc xml',len(path_xml))
+   #print('dlugosc xml',len(path_xml))
 
    path_png=os.path.abspath(os.path.join(path,'images/*.png'))
-   print('dlugosc png', (len(path_png)))
+   #print('dlugosc png', (len(path_png)))
 
    list_xmls = glob.glob(path_xml)
    list_png = glob.glob(path_png)
@@ -156,8 +133,8 @@ def load_data(path):
    data=[] #jeden kontener na dane
 
    if(len(list_xmls)==len(list_png)):
-       print(len(list_xmls))
-       print(len(list_png))
+       #print(len(list_xmls))
+       #print(len(list_png))
        for element in range(len(list_xmls)):
            data.append({'annotation':list_xmls[element],'image':cv2.imread(list_png[element]),'crosswalk':None})
    else:
@@ -168,8 +145,17 @@ def load_data(path):
 
 def get_file_list(root, file_type):
     return [os.path.join(directory_path, a) for directory_path, directory_name,
-            files in os.walk(root) for a in files if a.endswith(file_type)]
+            files in os.walk(root) for a in files if a.endswith(file_type)] ##zczytuje kazdy folder
 
+
+def load_data_2(path_annotations):
+    annotations_path_list = get_file_list(path_annotations, '.xml')
+    for a_path in annotations_path_list:
+        root = ET.parse(a_path).getroot()
+        if root.find("./object/name").text == 'crosswalk':
+            crosswalk.append(a_path)
+        else:
+            other.append(a_path)
 
 def extract_data(path_annotations, path_images):
     """Extracting needed data from .xml file and fitting to image"""
@@ -182,6 +168,7 @@ def extract_data(path_annotations, path_images):
         annotations['width'] = root.find("./size/width").text
         annotations['height'] = root.find("./size/height").text
         annotations['class'] = root.find("./object/name").text
+        #boundbox description
         annotations['xmin'] = int(root.find("./object/bndbox/xmin").text)
         annotations['ymin'] = int(root.find("./object/bndbox/ymin").text)
         annotations['xmax'] = int(root.find("./object/bndbox/xmax").text)
@@ -189,18 +176,79 @@ def extract_data(path_annotations, path_images):
         annotations_list.append(annotations)
     return pd.DataFrame(annotations_list)
 
-def read_image(path):
-    image = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
 
-data_train = data_train.reset_index()
+def train_test_list(): #dzielenie 3 do 1
+    counter=0
 
-X = data_train[['filename']]
-y = data_train['class']
+    while len(crosswalk) != 0:
+        index = random.randrange(0, len(crosswalk))
+        if counter == 0:
+            test.append(crosswalk[index])
+        else:
+            train.append(crosswalk[index])
+        crosswalk.pop(index)
+        counter = (counter + 1) % 4
+    while len(other) != 0:
+        index = random.randrange(0, len(other))
+        if counter == 0:
+            test.append(other[index])
+        else:
+            train.append(other[index])
+        other.pop(index)
+        counter = (counter + 1) % 4
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=34)
+           #CLEAR
+    ## annotations
+    for clear in os.listdir(path_temp_train):
+        os.unlink(os.path.join(path_temp_train,clear))
+    for clear in os.listdir(path_temp_test):
+        os.unlink(os.path.join(path_temp_test, clear))
+     ## images
+    for clear in os.listdir(path_temp_train_i):
+        os.unlink(os.path.join(path_temp_train_i, clear))
+    for clear in os.listdir(path_temp_test_i):
+        os.unlink(os.path.join(path_temp_test_i, clear))
+
+    for i in train:
+        shutil.copy(i,path_temp_train)
+        base=os.path.basename(i)
+        name=os.path.splitext(base)[0]
+        #print(name)
+        shutil.copy(path_IMG+'/'+name+'.png',path_temp_train_i)
+    for i in test:
+        shutil.copy(i, path_temp_test)
+        base = os.path.basename(i)
+        name = os.path.splitext(base)[0]
+        shutil.copy(path_IMG+'/'+name + '.png',path_temp_test_i)
+
+    return train,test
 
 
-extract_data(path_ANN)
-#create_dataset(path_IMG)
-data_train=load_data(path_to_train)
-xd()
+# def read_image(path):
+#     image = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
+#     scale_percent=60
+#     width=int(image.shape[1]* scale_percent/100)
+#     height=int(image.shape[0]*scale_percent/100)
+#     dim=(width,height)
+#
+#     resize=cv2.resize(image,dim,interpolation=cv2.INTER_AREA)
+#
+#     print('Resized:',resize.shape)
+
+
+#data_train=extract_data(path_ANN,path_IMG)
+
+#old_extract_data(path_ANN)
+load_data_2(path_ANN)
+train_test_list()
+
+x=extract_data(path_temp_train)  ## najwazniejsza (x wszystko przeiterowac po x)
+
+#read_image(path_IMG)
+
+
+print('crosswalk', len(crosswalk))
+print('other',len(other))
+
+print('train_list',len(train))
+print('test_list',len(test))
