@@ -134,7 +134,7 @@ def new_load_data(path_annotations):
         root = ET.parse(a_path).getroot()
         if root.find("./object/name").text == 'crosswalk':
             crosswalk.append(a_path)
-            print(crosswalk)
+            #print(crosswalk)
         else:
             other.append(a_path)
 
@@ -244,14 +244,14 @@ def extract_features(data):
 
 def train_algorithm(data):
 
-    clf = RandomForestClassifier(max_depth=2, random_state=0)
+    clf = RandomForestClassifier()
 
     des=[]
     labels=[]
     for sample in data:
         if sample['desc'] is not None:
-            des.append(sample['desc'].squeeze(0))
-            labels.append(sample['class'])
+           des.append(sample['desc'].squeeze(0))
+           labels.append(sample['class'])
 
     clf.fit(des,labels)
 
@@ -318,7 +318,7 @@ def evaluate(data):
 
 def display(data):
 
-    n_classes = 3
+    n_classes = 1
 
     corr = {}
     incorr = {}
@@ -388,6 +388,7 @@ def balance_dataset(data, ratio):
 
 def main():
 
+
     print('Data extraction')
     train_data = extract_data(path_temp_train, path_temp_train_i)
     display_dataset_stats(train_data)
@@ -409,15 +410,20 @@ def main():
 
     x=extract_data(path_temp_train,path_temp_train_i)
 
-    data_load=new_load_data('./train')
-    train_test_list()
-    learn_bovw(x)
+
+    data_load=new_load_data('./train')  #path_ANN jak to zamienić './train'
+
+    #print('podział')
+    #train_test_list()
+    #print('koniec')
+
+    #learn_bovw(x) ## commmenting after first compilation
 
     print('extract train features')
     y=extract_features(x)
     print('training time')
     rf=train_algorithm(y)
-
+    #
     print('extracting test features')
     data_test=extract_features(data_test)
 
@@ -429,8 +435,8 @@ def main():
 
     print('testing training dataset')
 
-    train_data=predict(rf,train_data)
-    evaluate(data_test)
+    train_data=predict(rf,y)
+    evaluate(train_data)
     display(train_data)
     return
 
