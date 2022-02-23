@@ -408,7 +408,7 @@ def main():
     print('after balance test dataset:')
     display_dataset_stats(data_test)
 
-    x=extract_data(path_temp_train,path_temp_train_i)
+    extraction_train=extract_data(path_temp_train,path_temp_train_i)
 
 
     data_load=new_load_data('./train')  #path_ANN jak to zamienić './train'
@@ -420,9 +420,9 @@ def main():
     #learn_bovw(x) ## commmenting after first compilation
 
     print('extract train features')
-    y=extract_features(x)
+    extraction_feature_train=extract_features(extraction_train)
     print('training time')
-    rf=train_algorithm(y)
+    rf=train_algorithm(extraction_feature_train)
     #
     print('extracting test features')
     data_test=extract_features(data_test)
@@ -435,7 +435,7 @@ def main():
 
     print('testing training dataset')
 
-    train_data=predict(rf,y)
+    train_data=predict(rf,extraction_feature_train)
     evaluate(train_data)
     display(train_data)
     return
