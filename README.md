@@ -1,5 +1,6 @@
 # AI_project
 Projekt końcowy z przedmiotu obieralnego Wprowadzenie do sztucznej inteligencji
 Projekt polega na stworzeniu systemu wykrywającego znaki przejść dla pieszych na zdjęciach.
-Sama klasyfikacja projektu była bardzo trudna dla mnie, mimo, że większość kodu polegała na wykorzystaniu kodu z zajęć.
-Za opóźnienie w terminie bardzo przepraszam
+Program klasyfikuje znaki według 4 klas, nie tak jak było to zakładane w wymaganiach (czyli 2 klasy)
+Skuteczność danych testowych na poziome 75%
+Stuczenośc danych treningowych 100% co budzi wątpliwości 
